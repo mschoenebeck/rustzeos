@@ -15,7 +15,7 @@ fn type_of<T>(_: &T) -> &'static str
 }
 
 // to smart contract json function (VK, Proof, Inputs)
-pub fn json_str<T>(var: &T) -> String
+pub fn to_json<T>(var: &T) -> String
 {
     // struct definitions
     pub struct Choice(pub u8);
@@ -50,31 +50,31 @@ pub fn json_str<T>(var: &T) -> String
             let vk: &VerifyingKey<Bls12> = unsafe {&*(var as *const T as *const VerifyingKey<Bls12>)};
                
             json.push_str("\"alpha_g1\":");
-            json.push_str(json_str(&vk.alpha_g1).as_str());
+            json.push_str(to_json(&vk.alpha_g1).as_str());
             json.push(',');
                
             json.push_str("\"beta_g1\":");
-            json.push_str(json_str(&vk.beta_g1).as_str());
+            json.push_str(to_json(&vk.beta_g1).as_str());
             json.push(',');
                
             json.push_str("\"beta_g2\":");
-            json.push_str(json_str(&vk.beta_g2).as_str());
+            json.push_str(to_json(&vk.beta_g2).as_str());
             json.push(',');
                
             json.push_str("\"gamma_g2\":");
-            json.push_str(json_str(&vk.gamma_g2).as_str());
+            json.push_str(to_json(&vk.gamma_g2).as_str());
             json.push(',');
                
             json.push_str("\"delta_g1\":");
-            json.push_str(json_str(&vk.delta_g1).as_str());
+            json.push_str(to_json(&vk.delta_g1).as_str());
             json.push(',');
                
             json.push_str("\"delta_g2\":");
-            json.push_str(json_str(&vk.delta_g2).as_str());
+            json.push_str(to_json(&vk.delta_g2).as_str());
             json.push(',');
                
             json.push_str("\"ic\":");
-            json.push_str(json_str(&vk.ic).as_str());
+            json.push_str(to_json(&vk.ic).as_str());
             
             json.push('}');
         },
@@ -85,19 +85,19 @@ pub fn json_str<T>(var: &T) -> String
             let proof: &Proof<Bls12> = unsafe {&*(var as *const T as *const Proof<Bls12>)};
                
             json.push_str("\"a\":");
-            json.push_str(json_str(&proof.a).as_str());
+            json.push_str(to_json(&proof.a).as_str());
             json.push(',');
                
             json.push_str("\"b\":");
-            json.push_str(json_str(&proof.b).as_str());
+            json.push_str(to_json(&proof.b).as_str());
             json.push(',');
                
             json.push_str("\"c\":");
-            json.push_str(json_str(&proof.c).as_str());
+            json.push_str(to_json(&proof.c).as_str());
             
             json.push('}');
         },
-        "rustzeos::json_str::G1Affine" |
+        "rustzeos::to_json::G1Affine" |
         "bls12_381::g1::G1Affine" =>
         {
             json.push('{');
@@ -105,19 +105,19 @@ pub fn json_str<T>(var: &T) -> String
             let g1: &G1Affine = unsafe {&*(var as *const T as *const G1Affine)};
                
             json.push_str("\"x\":");
-            json.push_str(json_str(&g1.x).as_str());
+            json.push_str(to_json(&g1.x).as_str());
             json.push(',');
                
             json.push_str("\"y\":");
-            json.push_str(json_str(&g1.y).as_str());
+            json.push_str(to_json(&g1.y).as_str());
             json.push(',');
                
             json.push_str("\"infinity\":");
-            json.push_str(json_str(&g1.infinity).as_str());
+            json.push_str(to_json(&g1.infinity).as_str());
             
             json.push('}');
         },
-        "rustzeos::json_str::G2Affine" |
+        "rustzeos::to_json::G2Affine" |
         "bls12_381::g2::G2Affine" =>
         {
             json.push('{');
@@ -125,15 +125,15 @@ pub fn json_str<T>(var: &T) -> String
             let g2: &G2Affine = unsafe {&*(var as *const T as *const G2Affine)};
                
             json.push_str("\"x\":");
-            json.push_str(json_str(&g2.x).as_str());
+            json.push_str(to_json(&g2.x).as_str());
             json.push(',');
                
             json.push_str("\"y\":");
-            json.push_str(json_str(&g2.y).as_str());
+            json.push_str(to_json(&g2.y).as_str());
             json.push(',');
                
             json.push_str("\"infinity\":");
-            json.push_str(json_str(&g2.infinity).as_str());
+            json.push_str(to_json(&g2.infinity).as_str());
             
             json.push('}');
         },
@@ -145,7 +145,7 @@ pub fn json_str<T>(var: &T) -> String
 
             for v in vec
             {
-                json.push_str(json_str(v).as_str());
+                json.push_str(to_json(v).as_str());
                 json.push(',');
             }
             json.pop();
@@ -160,14 +160,14 @@ pub fn json_str<T>(var: &T) -> String
 
             for v in vec
             {
-                json.push_str(json_str(v).as_str());
+                json.push_str(to_json(v).as_str());
                 json.push(',');
             }
             json.pop();
 
             json.push(']');
         },
-        "rustzeos::json_str::Fp" => 
+        "rustzeos::to_json::Fp" => 
         {
             json.push_str("{\"data\":[");
             
@@ -182,7 +182,7 @@ pub fn json_str<T>(var: &T) -> String
 
             json.push_str("]}");
         },
-        "rustzeos::json_str::Scalar" => 
+        "rustzeos::to_json::Scalar" => 
         {
             json.push_str("{\"data\":[");
             
@@ -197,22 +197,22 @@ pub fn json_str<T>(var: &T) -> String
 
             json.push_str("]}");
         },
-        "rustzeos::json_str::Fp2" => 
+        "rustzeos::to_json::Fp2" => 
         {
             json.push('{');
 
             let fp2: &Fp2 = unsafe {&*(var as *const T as *const Fp2)};
                
             json.push_str("\"c0\":");
-            json.push_str(json_str(&fp2.c0).as_str());
+            json.push_str(to_json(&fp2.c0).as_str());
             json.push(',');
                
             json.push_str("\"c1\":");
-            json.push_str(json_str(&fp2.c1).as_str());
+            json.push_str(to_json(&fp2.c1).as_str());
             
             json.push('}');
         },
-        "rustzeos::json_str::Choice" =>
+        "rustzeos::to_json::Choice" =>
         {
             json.push_str("{\"data\":");
             
