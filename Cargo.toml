@@ -7,7 +7,7 @@ edition = "2018"
 name = "rustzeos"
 path = "src/rustzeos.rs"
 # use this to build as wasm for use in JS
-#crate-type = ["cdylib"]
+crate-type = ["cdylib"]
 
 [dependencies]
 bellman = { version = "0.10.0" }
@@ -39,3 +39,4 @@ halo2_proofs = "0.2"
 memuse = { version = "0.2", features = ["nonempty"] }
 pasta_curves = "0.4"
 rand = "0.8"
+getrandom = { version = "0.2", features = ["js"] }
