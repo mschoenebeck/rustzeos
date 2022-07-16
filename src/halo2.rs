@@ -7,6 +7,8 @@ use crate::halo2::plonk::Circuit;
 use memuse::DynamicUsage;
 use pasta_curves::{pallas, vesta};
 use rand::RngCore;
+use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
+
 
 /// The verifying key for the Orchard Action circuit.
 #[derive(Debug)]
@@ -27,6 +29,32 @@ impl VerifyingKey {
         let vk = plonk::keygen_vk(&params, &circuit).unwrap();
 
         VerifyingKey { params, vk }
+    }
+
+    /// serializes verifying key to byte vector
+    pub fn serialize(&self, arr: &mut Vec<u8>) -> ()
+    {
+        // TODO: handle errors
+        let res = arr.write_u32::<LittleEndian>(self.params.k);
+        if res.is_err()
+        {
+            return ();
+        }
+        let res = bincode::serialize_into(arr, &self.vk);
+        if res.is_err()
+        {
+            return ();
+        }
+    }
+
+    /// deserializes byte vector to verifying key
+    pub fn deserialize(arr: &mut Vec<u8>) -> Self
+    {
+        let k = LittleEndian::read_u32(&arr);
+        VerifyingKey{
+            params: halo2_proofs::poly::commitment::Params::new(k),
+            vk: bincode::deserialize(&arr[4..]).unwrap()
+        }
     }
 }
 
@@ -167,3 +195,21 @@ pub trait Instance
 {
     fn to_halo2_instance_vec(&self) -> Vec<Vec<vesta::Scalar>>;
 }
+
+/*
+// from: https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
+unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
+    ::std::slice::from_raw_parts(
+        (p as *const T) as *const u8,
+        ::std::mem::size_of::<T>(),
+    )
+}
+
+#[wasm_bindgen]
+#[allow(non_snake_case)]
+#[no_mangle]
+pub fn verify_proof(proof: &[u8], inputs: &[u8], vk: &[u8]) -> String
+{
+
+}
+*/
