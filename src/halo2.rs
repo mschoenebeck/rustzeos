@@ -5,7 +5,7 @@ use halo2_proofs::{
 };
 use crate::halo2::plonk::Circuit;
 use memuse::DynamicUsage;
-use pasta_curves::{pallas, vesta};
+use pasta_curves::{pallas, vesta, Fp};
 use rand::RngCore;
 use byteorder::{ByteOrder, LittleEndian, WriteBytesExt};
 
@@ -48,7 +48,7 @@ impl VerifyingKey {
     }
 
     /// deserializes byte vector to verifying key
-    pub fn deserialize(arr: &mut Vec<u8>) -> Self
+    pub fn deserialize(arr: &Vec<u8>) -> Self
     {
         let k = LittleEndian::read_u32(&arr);
         VerifyingKey{
@@ -164,6 +164,21 @@ impl Proof {
         plonk::verify_proof(&vk.params, &vk.vk, strategy, &instances, &mut transcript)
     }
 
+    /// Verifies this proof with the given instances.
+    pub fn verify2(&self, vk: &VerifyingKey, instances: &[Vec<Vec<vesta::Scalar>>]) -> Result<(), plonk::Error> 
+    {
+        let instances: Vec<_> = instances.to_vec();
+        let instances: Vec<Vec<_>> = instances
+            .iter()
+            .map(|i| i.iter().map(|c| &c[..]).collect())
+            .collect();
+        let instances: Vec<_> = instances.iter().map(|i| &i[..]).collect();
+
+        let strategy = SingleVerifier::new(&vk.params);
+        let mut transcript = Blake2bRead::init(&self.0[..]);
+        plonk::verify_proof(&vk.params, &vk.vk, strategy, &instances, &mut transcript)
+    }
+
     pub fn add_to_batch<ConcreteInstance>(
         &self,
         batch: &mut BatchVerifier<vesta::Affine>,
@@ -196,20 +211,63 @@ pub trait Instance
     fn to_halo2_instance_vec(&self) -> Vec<Vec<vesta::Scalar>>;
 }
 
-/*
-// from: https://stackoverflow.com/questions/28127165/how-to-convert-struct-to-u8
-unsafe fn any_as_u8_slice<T: Sized>(p: &T) -> &[u8] {
-    ::std::slice::from_raw_parts(
-        (p as *const T) as *const u8,
-        ::std::mem::size_of::<T>(),
-    )
-}
-
-#[wasm_bindgen]
-#[allow(non_snake_case)]
-#[no_mangle]
-pub fn verify_proof(proof: &[u8], inputs: &[u8], vk: &[u8]) -> String
+/// inputs should be a list of 4*64 bit values (field elements) encoded in little endian byte order
+/// panics if length is incorrect
+pub fn deserialize_instances(inputs: &[u8]) -> Vec<Vec<Vec<vesta::Scalar>>>
 {
+    // first byte is number of public inputs per instance
+    let n = inputs[0] as usize;
+    // enforce correct length (size(Fp) = 4*8 bytes)
+    assert_eq!((inputs.len()-1)%(4*8*n), 0);
+    // number of instances
+    let m = (inputs.len()-1)/(4*8*n);
+    
+    let mut vec_m = Vec::new();
+    for j in 0..m
+    {
+        let mut vec_n = Vec::new();
+        for i in 0..n
+        {
+            // 1+.. to skip first element of inputs
+            let offset = 1 + j*n + i*32;
+            let fp = Fp([
+                LittleEndian::read_u64(&inputs[offset + 0*8..offset + 1*8]),
+                LittleEndian::read_u64(&inputs[offset + 1*8..offset + 2*8]),
+                LittleEndian::read_u64(&inputs[offset + 2*8..offset + 3*8]),
+                LittleEndian::read_u64(&inputs[offset + 3*8..offset + 4*8]),
+            ]);
+            vec_n.push(fp);
+        }
+        let mut vec_1 = Vec::new();
+        vec_1.push(vec_n);
+        vec_m.push(vec_1);
+    }
 
+    vec_m
 }
-*/
+
+/// needs to be implemented exactly like this on smart contract side
+pub fn serialize_instances(vec: &Vec<Vec<Vec<vesta::Scalar>>>) -> Vec<u8>
+{
+    let mut inputs = Vec::new();
+    let n = vec[0][0].len(); // the length of the very inner vector is the number of input field elements
+    inputs.push(n as u8);
+
+    for j in 0..vec.len()
+    {
+        for i in 0..n
+        {
+            let mut buf = [0; 8];
+            LittleEndian::write_u64(&mut buf, vec[j][0][i].0[0]);
+            inputs.append(&mut buf.to_vec());
+            LittleEndian::write_u64(&mut buf, vec[j][0][i].0[1]);
+            inputs.append(&mut buf.to_vec());
+            LittleEndian::write_u64(&mut buf, vec[j][0][i].0[2]);
+            inputs.append(&mut buf.to_vec());
+            LittleEndian::write_u64(&mut buf, vec[j][0][i].0[3]);
+            inputs.append(&mut buf.to_vec());
+        }
+    }
+
+    inputs
+}
