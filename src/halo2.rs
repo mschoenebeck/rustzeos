@@ -148,24 +148,7 @@ impl Proof {
     }
 
     /// Verifies this proof with the given instances.
-    pub fn verify<ConcreteInstance>(&self, vk: &VerifyingKey, instances: &[ConcreteInstance]) -> Result<(), plonk::Error> 
-    where
-    ConcreteInstance: Instance
-    {
-        let instances: Vec<_> = instances.iter().map(|i| i.to_halo2_instance_vec()).collect();
-        let instances: Vec<Vec<_>> = instances
-            .iter()
-            .map(|i| i.iter().map(|c| &c[..]).collect())
-            .collect();
-        let instances: Vec<_> = instances.iter().map(|i| &i[..]).collect();
-
-        let strategy = SingleVerifier::new(&vk.params);
-        let mut transcript = Blake2bRead::init(&self.0[..]);
-        plonk::verify_proof(&vk.params, &vk.vk, strategy, &instances, &mut transcript)
-    }
-
-    /// Verifies this proof with the given instances.
-    pub fn verify2(&self, vk: &VerifyingKey, instances: &[Vec<Vec<vesta::Scalar>>]) -> Result<(), plonk::Error> 
+    pub fn verify(&self, vk: &VerifyingKey, instances: &[Vec<Vec<vesta::Scalar>>]) -> Result<(), plonk::Error> 
     {
         let instances: Vec<_> = instances.to_vec();
         let instances: Vec<Vec<_>> = instances
@@ -217,7 +200,7 @@ pub fn deserialize_instances(inputs: &[u8]) -> Vec<Vec<Vec<vesta::Scalar>>>
 {
     // first byte is number of public inputs per instance
     let n = inputs[0] as usize;
-    // enforce correct length (size(Fp) = 4*8 bytes)
+    // enforce correct length (size(Fp) = 4*8 bytes), len()-1 because of leading byte 'n'
     assert_eq!((inputs.len()-1)%(4*8*n), 0);
     // number of instances
     let m = (inputs.len()-1)/(4*8*n);
