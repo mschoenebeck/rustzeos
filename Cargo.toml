@@ -40,3 +40,6 @@ pasta_curves = { version = "0.4", path = "../pasta_curves" }
 memuse = { version = "0.2", features = ["nonempty"] }
 rand = "0.8"
 getrandom = { version = "0.2", features = ["js"] }
+
+[features]
+multicore = ["halo2_proofs/multicore", "bellman/multicore"]
