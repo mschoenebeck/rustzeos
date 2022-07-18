@@ -194,9 +194,16 @@ pub trait Instance
     fn to_halo2_instance_vec(&self) -> Vec<Vec<vesta::Scalar>>;
 }
 
+pub type Inputs = Vec<Vec<Vec<vesta::Scalar>>>;
+
+pub fn verify_proof(vk: &VerifyingKey, proof: &Proof, inputs: &Inputs) -> bool
+{
+    proof.verify(&vk, &inputs).is_ok()
+}
+
 /// inputs should be a list of 4*64 bit values (field elements) encoded in little endian byte order
 /// panics if length is incorrect
-pub fn deserialize_instances(inputs: &[u8]) -> Vec<Vec<Vec<vesta::Scalar>>>
+pub fn deserialize_instances(inputs: &[u8]) -> Inputs
 {
     // first byte is number of public inputs per instance
     let n = inputs[0] as usize;
@@ -230,7 +237,7 @@ pub fn deserialize_instances(inputs: &[u8]) -> Vec<Vec<Vec<vesta::Scalar>>>
 }
 
 /// needs to be implemented exactly like this on smart contract side
-pub fn serialize_instances(vec: &Vec<Vec<Vec<vesta::Scalar>>>) -> Vec<u8>
+pub fn serialize_instances(vec: &Inputs) -> Vec<u8>
 {
     let mut inputs = Vec::new();
     let n = vec[0][0].len(); // the length of the very inner vector is the number of input field elements
