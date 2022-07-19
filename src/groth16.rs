@@ -54,12 +54,44 @@ pub fn serialize_inputs(vec: &Inputs) -> Vec<u8>
     inputs
 }
 
+/// serialize vk
+pub fn serialize_vk(vk: &VerifyingKey) -> Vec<u8>
+{
+    let mut bytes = Vec::new();
+    assert!(vk.write(&mut bytes).is_ok());
+    bytes
+}
+
+/// serialize proof
+pub fn serialize_proof(proof: &Proof) -> Vec<u8>
+{
+    let mut bytes = Vec::new();
+    assert!(proof.write(&mut bytes).is_ok());
+    bytes
+}
+
+pub fn bytes_to_hex_str(vec: &Vec<u8>) -> String
+{
+    struct ByteBuf<'a>(&'a [u8]);
+
+    impl<'a> std::fmt::LowerHex for ByteBuf<'a> {
+        fn fmt(&self, fmtr: &mut std::fmt::Formatter) -> Result<(), std::fmt::Error> {
+            for byte in self.0 {
+                fmtr.write_fmt(format_args!("{:02x}", byte))?;
+            }
+            Ok(())
+        }
+    }
+
+    format!("{:x}", ByteBuf(&vec))
+}
+
 #[cfg(test)]
 mod tests{
 
     use crate::groth16::Scalar;
 
-    use super::{serialize_inputs, deserialize_inputs};
+    use super::{serialize_inputs, deserialize_inputs, bytes_to_hex_str};
 
     #[test]
     fn test_serialize_deserialize()
@@ -74,5 +106,12 @@ mod tests{
         let vec_r = deserialize_inputs(&arr);
 
         assert_eq!(vec, vec_r);
+    }
+
+    #[test]
+    fn test_serialize_bytes()
+    {
+        let buff = [1_u8; 24];
+        assert_eq!(bytes_to_hex_str(&buff.to_vec()), "010101010101010101010101010101010101010101010101")
     }
 }
