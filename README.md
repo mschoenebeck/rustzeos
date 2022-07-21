@@ -35,6 +35,13 @@ Build the project as Rust library:
 cargo build
 ```
 
+Run the unit tests:
+
+```
+cargo test --package rustzeos --lib -- groth16::tests::test_groth16_circuit --exact --nocapture
+cargo test --package rustzeos --lib -- halo2::tests::test_halo2_circuit --exact --nocapture
+```
+
 ### Dependencies
 
 - [Rust Toolchain](https://www.rust-lang.org/tools/install)
