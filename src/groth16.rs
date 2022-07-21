@@ -70,6 +70,7 @@ pub fn serialize_proof(proof: &Proof) -> Vec<u8>
     bytes
 }
 
+// converts a byte array to hex string as required by EOSIO
 pub fn bytes_to_hex_str(vec: &Vec<u8>) -> String
 {
     struct ByteBuf<'a>(&'a [u8]);
