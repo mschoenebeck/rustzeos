@@ -1,5 +1,7 @@
 
 use std::convert::TryInto;
+use std::num::ParseIntError;
+use std::fmt::Write;
 
 use bellman::groth16;
 use bls12_381::{Bls12, Scalar};
@@ -85,6 +87,21 @@ pub fn bytes_to_hex_str(vec: &Vec<u8>) -> String
     }
 
     format!("{:x}", ByteBuf(&vec))
+}
+
+pub fn decode_hex(s: &str) -> Result<Vec<u8>, ParseIntError> {
+    (0..s.len())
+        .step_by(2)
+        .map(|i| u8::from_str_radix(&s[i..i + 2], 16))
+        .collect()
+}
+
+pub fn encode_hex(bytes: &[u8]) -> String {
+    let mut s = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        write!(&mut s, "{:02x}", b).unwrap();
+    }
+    s
 }
 
 #[cfg(test)]
