@@ -219,7 +219,7 @@ pub fn deserialize_instances(inputs: &[u8]) -> Inputs
         for i in 0..n
         {
             // 1+.. to skip first element of inputs
-            let offset = 1 + j*n + i*32;
+            let offset = 1 + j*n*32 + i*32;
             let fp = Fp([
                 LittleEndian::read_u64(&inputs[offset + 0*8..offset + 1*8]),
                 LittleEndian::read_u64(&inputs[offset + 1*8..offset + 2*8]),
