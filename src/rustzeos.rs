@@ -19,12 +19,14 @@ pub mod zeos
     /// b_sc (8 bytes)
     /// c_d1 (8 bytes)
     /// cmb (32 bytes)
-    /// cmc (32 bytes)      // == ZI_SIZE (225)
+    /// cmc (32 bytes)
+    /// accb (8 bytes)
+    /// accc (8 bytes)      // == ZI_SIZE (241)
     ///
     /// panics if length is incorrect
     pub fn deserialize_instances(inputs: &[u8]) -> Vec<Vec<Vec<vesta::Scalar>>>
     {
-        let zi_size = 32 + 32 + 32 + 32 + 1 + 8 + 8 + 8 + 8 + 32 + 32;
+        let zi_size = 32 + 32 + 32 + 32 + 1 + 8 + 8 + 8 + 8 + 32 + 32 + 8 + 8;
         // the number of inputs structs (instances) can be calculated from the length
         let n = inputs.len() / zi_size;
         // enforce correct length
@@ -107,6 +109,16 @@ pub mod zeos
                 LittleEndian::read_u64(&inputs[offset + 2*8..offset + 3*8]),
                 LittleEndian::read_u64(&inputs[offset + 3*8..offset + 4*8]),
             ]));
+            offset += 32;
+            // accb
+            vec_n.push(vesta::Scalar::from(
+                LittleEndian::read_u64(&inputs[offset..offset + 8]),
+            ));
+            offset += 8;
+            // accc
+            vec_n.push(vesta::Scalar::from(
+                LittleEndian::read_u64(&inputs[offset..offset + 8]),
+            ));
 
             let mut vec_1 = Vec::new();
             vec_1.push(vec_n);
